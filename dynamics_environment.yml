@@ -32,6 +32,7 @@ dependencies:
   - pywin32=302
   - requests=2.28.1
   - ruamel_yaml=0.15.100
+  - scipy=1.10.1
   - setuptools=61.2.0
   - six=1.16.0
   - sqlite=3.38.5
