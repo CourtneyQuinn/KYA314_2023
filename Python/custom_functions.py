@@ -56,3 +56,67 @@ def MyJacobian(f,x,h):
         df[:, i, :] = dfi
         
     return df
+
+def MySolve(f,x0,df,tol,maxit):
+    '''Newton iteration to find zeros of a nonlinear system
+    of equations, 0 = f(x)
+    2nd Order Central Difference
+    Input
+    ----------
+    f  : function handle
+         Takes input x
+    x0 : array (n,)
+         Initial guess
+    df : function handle 
+         Jacobian
+    tol: float
+         tolerance for convergence
+    maxit : integer
+            number of mximum iterations for
+            Newton solver
+    Returns
+    -------
+    x : array (n,)
+        solution of f(x)=0
+    converged : logical
+                1 - converged
+                0 - not converged
+    J : array (n,n)
+        Jacobian at solution
+    '''
+    
+    if x0.ndim == 1:
+        x0 = np.expand_dims(x0, axis=1)
+    
+    J = df(x0)
+    x1 = x0 - np.matmul(np.linalg.inv(J),f(x0))
+    
+    ek1 = linalg.norm(x1 - x0)
+    rk = linalg.norm(f(x0))
+    print('Error is %g, Residual is %g' % (ek1,rk))
+    x0 = x1
+    
+    for i in np.arange(0,maxit):
+        J = df(x0)
+        if i == maxit-1:
+            converged = False;
+            x = x0
+            break
+        elif ek1 < tol and rk < tol:
+            converged = True
+            J = df(x0)
+            x = x0
+            break
+        else:
+            x1 = x0 - np.matmul(np.linalg.inv(J),f(x0))
+            ek1 = np.linalg.norm(x1 - x0)
+            rk = np.linalg.norm(f(x0))
+            x0 = x1
+            print('Error is %g, Residual is %g' % (ek1,rk))
+
+    if ek1 < tol and rk < tol:
+        converged = True
+        J = df(x0)
+        x = x0
+    
+    return x, converged, J
