@@ -28,11 +28,11 @@ def LogisticMap(x,lam):
           parameter value
     Returns
     -------
-    xout : array, shape (n, N)
+    xout : array, shape (1, N)
            Array containing 1-step interate of map
            2nd dimension denotes iterates for different starting points
     '''
-    n = x.shape[0]
+
     if x.ndim == 1:
         x = np.expand_dims(x, axis=1)
     
@@ -68,5 +68,39 @@ def HenonMap(x,p):
     
     xout[0,:] = 1 - alpha*x[0,:]**2+x[1,:];
     xout[1,:] = beta*x[0,:]
+    
+    return xout
+
+def PredatorPrey(t,x,p):
+    '''2D ODE system exhibiting limit cycles
+    Input
+    ----------
+    x : array (2, N)
+        state space values
+    p : array (4,)
+        parameter values
+    Returns
+    -------
+    xout : array, shape (2, N)
+           Array containing derivative at x
+           2nd dimension denotes derivatives for different points
+    '''
+
+    if x.ndim == 1:
+        x = np.expand_dims(x, axis=1)
+    
+    n = x.shape
+    xout = np.empty(n)
+    xout[:] = np.nan 
+    
+    r = p[0]
+    m = p[1]
+    a = p[2]
+    b = p[3]
+    
+    xout[0,:] = r*x[0,:]-m*x[0,:]*x[1,:];
+    xout[1,:] = -a*x[1,:]+b*x[0,:]*x[1,:];
+    
+    xout = xout.squeeze()
     
     return xout
