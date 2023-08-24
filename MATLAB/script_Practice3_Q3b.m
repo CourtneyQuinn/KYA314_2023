@@ -24,8 +24,8 @@ hold on;
 plot(xout1(:,1),xout1(:,2))
 
 set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
+xlabel('$x$','interpreter','latex')
+ylabel('$\dot{x}$','interpreter','latex')
 box on;
 
 %% alpha = 0
@@ -44,8 +44,8 @@ hold on;
 plot(xout2(:,1),xout2(:,2))
 
 set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
+xlabel('$x$','interpreter','latex')
+ylabel('$\dot{x}$','interpreter','latex')
 box on;
 
 %% alpha > 0
@@ -64,8 +64,8 @@ hold on;
 plot(xout3(:,1),xout3(:,2))
 
 set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
+xlabel('$x$','interpreter','latex')
+ylabel('$\dot{x}$','interpreter','latex')
 box on;
 
 %% alpha >> 0
@@ -84,6 +84,6 @@ hold on;
 plot(xout4(:,1),xout4(:,2))
 
 set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
+xlabel('$x$','interpreter','latex')
+ylabel('$\dot{x}$','interpreter','latex')
 box on;
