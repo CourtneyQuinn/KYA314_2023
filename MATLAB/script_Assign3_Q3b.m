@@ -1,89 +1,45 @@
 %% KYA314 - Assignment 3, Q3b
-% simulate the Vander Pol oscillator
+% numerically estimate bifurcation value in Sal'nikov model
 clear;
 close all;
 clc;
 
+kappa = 0.1;
+
 % define ODE system
-f=@(t,x,p) [x(2,:);
-          p(1).*(1-x(1,:).^2).*x(2,:)-x(1,:)];
+f=@(t,x,p) [p(1)-kappa.*x(1,:).*exp(x(2,:));
+          x(1,:).*exp(x(2,:))-x(2,:)];
 
-%% alpha < 0
-alpha = -1;
+%% Estimate bifurcation parameter
 
-x0 = [0.1;0.1];
+lam =@(mu) -0.5*(kappa*exp(mu/kappa)-mu/kappa+1);
 
-% ODE solver
+hjac = 1e-6;
+df =@(mu) MyJacobian(lam,mu,hjac);
+
+tol = 1e-8;
+maxit = 50;
+[mu0, converged, ~] = MySolve(lam,0.01,df,tol,maxit)
+
+%% ODE solver
 tspan = [0,100];
+hsol = 0.01;
 
-[~,xout1] = ode45(@(t,x)f(t,x,alpha),tspan,x0);
+mu_min = mu0-0.01;
+mu_max = mu0+0.01;
 
-% Plot in phase space
+x0 = [0.5;0.5];
+
+[xout1,tout1,~] = MyIVP(@(t,x)f(t,x,mu_min),x0,tspan,hsol);
+[xout2,tout2,~] = MyIVP(@(t,x)f(t,x,mu_max),x0,tspan,hsol);
+
+%% Plot in phase space
 figure(1); clf;
 hold on;
-plot(xout1(:,1),xout1(:,2))
-
+plot(xout1(1,:),xout1(2,:),'linewidth',1.5)
+plot(xout2(1,:),xout2(2,:),'linewidth',1.5)
 set(gca,'FontSize',16)
+legend('\mu<\mu_0','\mu>\mu_0')
 xlabel('x')
-ylabel('v')
-box on;
-
-%% alpha = 0
-alpha = 0;
-
-x0 = [0.1;0.1];
-
-% ODE solver
-tspan = [0,100];
-
-[~,xout2] = ode45(@(t,x)f(t,x,alpha),tspan,x0);
-
-% Plot in phase space
-figure(1); clf;
-hold on;
-plot(xout2(:,1),xout2(:,2))
-
-set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
-box on;
-
-%% alpha > 0
-alpha = 1;
-
-x0 = [0.1;0.1];
-
-% ODE solver
-tspan = [0,100];
-
-[~,xout3] = ode45(@(t,x)f(t,x,alpha),tspan,x0);
-
-% Plot in phase space
-figure(1); clf;
-hold on;
-plot(xout3(:,1),xout3(:,2))
-
-set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
-box on;
-
-%% alpha >> 0
-alpha = 10;
-
-x0 = [0.1;0.1];
-
-% ODE solver
-tspan = [0,100];
-
-[~,xout4] = ode45(@(t,x)f(t,x,alpha),tspan,x0);
-
-% Plot in phase space
-figure(1); clf;
-hold on;
-plot(xout4(:,1),xout4(:,2))
-
-set(gca,'FontSize',16)
-xlabel('x')
-ylabel('v')
+ylabel('T')
 box on;
