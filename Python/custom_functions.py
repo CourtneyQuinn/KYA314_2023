@@ -120,3 +120,60 @@ def MySolve(f,x0,df,tol,maxit):
         x = x0
     
     return x, converged, J
+
+def MyIVP(f,x0,tspan,h):
+    '''Solving initial-value problems for ODEs of form 
+    x*(t)=f(t,x(t))
+    4th-order Runge-Kutta
+    Input
+    ----------
+    f : function handle
+        Takes input x
+    x0 : array (n, m)
+        initial conditions
+        If m = 1, x is one point
+    tspan : array (2,)
+        start and end times of integration
+    h : float
+        Step size for numerical integration
+    Returns
+    -------
+    xt : array (n, m, N+1)
+        Array containing solution x(t) at times in t
+        2nd dimension denotes trajectory corresponding to 
+        x0 values
+    t : array (N+1,)
+        time steps for integration
+    xend : array (n, m)
+        final point in trajectory for each x0 value
+    '''
+
+    n = x0.shape[0]
+    if x0.ndim == 1:
+        x0 = np.expand_dims(x0, axis=1)
+
+    N = int((tspan[1]-tspan[0])/h)
+    m = x0.shape[1]
+    
+    xt = np.empty((n,m,N+1))
+    xt[:] = np.nan
+    xt[:,:,0]= x0
+
+    t = np.empty((N+1))
+    t[:] = np.nan
+    t[0] = tspan[0]
+    
+    for k in np.arange(N):
+        tk = t[k]
+        xk = xt[:,:,k]
+        j1 = f(tk,xk)
+        j2 = f(tk+h/2,xk+(h/2)*j1)
+        j3 = f(tk+h/2,xk+(h/2)*j2)
+        j4 = f(tk+h,xk+h*j3)
+        
+        xt[:,:,k+1] = xk + (h/6)*(j1+2*j2+2*j3+j4)
+        t[k+1] = tspan[0]+k*h
+    
+    xend = xt[:,:,-1]
+    
+    return xt, t, xend
