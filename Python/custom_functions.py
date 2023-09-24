@@ -177,3 +177,72 @@ def MyIVP(f,x0,tspan,h):
     xend = xt[:,:,-1]
     
     return xt, t, xend
+
+def MyTrackCurve(userf,userdf,y0,ytan,**kwargs):
+    '''Track a curve of n equations for n+1 variables
+    0=f(y), f: R(n+1) to R(n)
+    Input
+    ----------
+    userf : function handle
+            Takes input y
+    userdf : function handle
+            Takes input y
+    y0 : array (n+1,)
+         initial guess for first point on curve
+    ytan : array (n+1,)
+           approx. tangent to curve at y0
+    Returns
+    -------
+    ylist : array (n+1, nmax)
+        array containing points along curve
+        y_k = ylist(:,k)
+    '''
+    options={'stepsize':0.01,'nmax':100,'tol':1e-5,'maxit':10};
+    options.update(kwargs)  
+    s = options.get('stepsize')
+    nmax = options.get('nmax')
+    tol = options.get('tol')
+    maxit = options.get('maxit')
+    
+    m = y0.shape[0]
+    
+    if y0.ndim == 1:
+        y0 = np.expand_dims(y0, axis=1)
+    if ytan.ndim == 1:
+        ytan = np.expand_dims(ytan, axis=1)
+    
+    n = userf(y0).shape[0]
+    ylist = np.zeros((m,nmax+1))*np.nan
+    ylist[:,0] = y0.squeeze(axis=1)
+    for j in np.arange(0,nmax):
+        yj = y0 + s*ytan
+        fj = lambda y: np.matmul(np.transpose(ytan),(y - yj))
+        F = lambda y: np.concatenate((userf(y),fj(y)),axis=0)
+        def df(y):
+            J = MyJacobian(fj,y,1e-5)
+            if J.ndim > 2:
+                J = J.squeeze(axis=2)
+            dfout = np.concatenate((userdf(y),J),axis=0)
+            return dfout
+        
+        yk,converged,J = MySolve(F,yj,df,tol,maxit)
+        while converged == 0:
+            s = np.max(s/2,1e-8)
+            yj = y0 + s*ytan
+            fj = lambda y: np.matmul(np.transpose(ytan),(y - yj))
+            F = lambda y: np.concatenate((userf(y),fj(y)),axis=0)
+            yk,converged,J = MySolve(F,yj,df,tol,maxit)
+        
+        s = np.min([s*2,options.get('stepsize')])
+        dfk = userdf(yk)
+        zeros0 = np.zeros((n,))
+        zeros1 = np.append(zeros0,np.array([1.]),axis=0)
+        fk = np.concatenate((dfk,np.transpose(ytan)),axis=0)
+        z = np.linalg.lstsq(fk,zeros1,rcond=None)[0]
+        mult = np.sign(np.matmul(np.transpose(z),ytan))
+        ytan = np.divide(z,linalg.norm(z))*mult
+        ytan = np.expand_dims(ytan, axis=1)
+        ylist[:,j+1] = np.squeeze(yk,axis=1)
+        y0 = yk
+    
+    return ylist
