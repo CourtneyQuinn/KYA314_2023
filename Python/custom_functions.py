@@ -227,7 +227,7 @@ def MyTrackCurve(userf,userdf,y0,ytan,**kwargs):
         
         yk,converged,J = MySolve(F,yj,df,tol,maxit)
         while converged == 0:
-            s = np.max(s/2,1e-8)
+            s = np.max([s/2,1e-8])
             yj = y0 + s*ytan
             fj = lambda y: np.matmul(np.transpose(ytan),(y - yj))
             F = lambda y: np.concatenate((userf(y),fj(y)),axis=0)
