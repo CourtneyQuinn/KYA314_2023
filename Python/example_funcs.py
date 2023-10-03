@@ -104,3 +104,36 @@ def PredatorPrey(t,x,p):
     xout = xout.squeeze()
     
     return xout
+
+def Stommel(t,x,p):
+    '''2D ODE system for the AMOC
+    Input
+    ----------
+    t : float
+        time value
+    x : array (2, N)
+        state space values
+    p : array (3,)
+        parameter values
+    Returns
+    -------
+    xout : array, shape (2, N)
+           Array containing derivative at x
+           2nd dimension denotes derivatives for different points
+    '''
+
+    if x.ndim == 1:
+        x = np.expand_dims(x, axis=1)
+    
+    n = x.shape
+    xout = np.empty(n)
+    xout[:] = np.nan 
+    
+    F = p[0,]
+    alpha = p[1,]
+    mu = p[2,]
+    
+    xout[0,:] = -alpha*(x[0,:]-1)-x[0,:]*(1+mu**2*(x[0,:]-x[1,:])**2);
+    xout[1,:] = F-x[1,:]*(1+mu**2*(x[0,:]-x[1,:])**2);
+    
+    return xout
