@@ -137,3 +137,39 @@ def Stommel(t,x,p):
     xout[1,:] = F-x[1,:]*(1+mu**2*(x[0,:]-x[1,:])**2);
     
     return xout
+
+def Van_Duff(t,x,p):
+    '''2D ODE system exhibiting relaxation oscillations
+    Input
+    ----------
+    t : float
+        time value
+    x : array (3, N)
+        state space values
+    p : array (5,)
+        parameter values
+    Returns
+    -------
+    xout : array, shape (3, N)
+           Array containing derivative at x
+           2nd dimension denotes derivatives for different points
+    '''
+
+    if x.ndim == 1:
+        x = np.expand_dims(x, axis=1)
+    
+    n = x.shape
+    xout = np.empty(n)
+    xout[:] = np.nan 
+    
+    mu = p[0,]
+    alpha = p[1,]
+    beta = p[2,]
+    K = p[3,]
+    omega = p[4,]
+    
+    xout[0,:] = x[1,:];
+    xout[1,:] = mu*(1-x[0,:]**2)*x[1,:]-alpha*x[0,:]-beta*x[0,:]**3+K*np.cos(x[2,:]);
+    xout[2,:] = omega*x[2,:]**0
+    
+    return xout
