@@ -246,3 +246,69 @@ def MyTrackCurve(userf,userdf,y0,ytan,**kwargs):
         y0 = yk
     
     return ylist
+
+def LyapQR(M,xini,N,**kwargs):
+    '''Compute Lyapunov exponents for either a map 
+    or an array of tangent linear propagators
+    Input
+    ----------
+    M : function handle or array (n,n,N+1)
+        Takes input x
+    xini : array (n,)
+           initial point
+    N : integer
+        number of steps over which to compute exponents
+    Returns
+    -------
+    lams : array (n,)
+           final Lyapunov exponents
+    Rdiag : array (n,N)
+            diagonal pf R at each step
+    Lambda : array (n,N)
+             Lyapunov exponents at increasing windows
+    x : array (n,N+1)
+        state space trajectory
+    '''
+    options={'dM':lambda x:MyJacobian(M,x,1e-6),'h':1};
+    options.update(kwargs)  
+    dM = options.get('dM')
+    h = options.get('h')
+
+    n = xini.shape[0]
+    Q = np.eye(n,dtype = float)
+    Rdiag = np.empty((n,N))*np.nan
+    Lambda = np.empty((n,N))*np.nan
+    x = np.empty((n,N+1))*np.nan
+    x[:,0] = xini
+    
+    if xini.ndim == 1:
+        xini = np.expand_dims(xini, axis=1)
+    
+    if type(M)=='function':
+        for j in np.arange(0,N):
+            x[:,j+1] = M(x[:,j])
+            Aj = dM(x[:,j])
+            B = np.matmul(Aj,Q)
+            [Q,R] = linalg.qr(B)
+            Rj = np.diag(R)
+            l = np.where(Rj<0)[0]
+            if len(l) != 0:
+                Q[:,l] = -1*Q[:,l]
+            Ri = abs(Rj)
+            Rdiag[:,j] = Rj
+            Lambda[:,j] = 1/j*np.sum(np.log(Rdiag[:,:j+1]),axis=1)
+    else:
+        for j in np.arange(0,N):
+            B = np.matmul(M[:,:,j],Q)
+            [Q,R] = linalg.qr(B)
+            Rj = np.diag(R)
+            l = np.where(Rj<0)[0]
+            if len(l) != 0:
+                Q[:,l] = -1*Q[:,l]
+            Rj = abs(Rj)
+            Rdiag[:,j] = Rj
+            Lambda[:,j] = 1/(j*h)*np.sum(np.log(Rdiag[:,:j+1]),axis=1)
+            
+    lams = Lambda[:,-1]
+    
+    return lams, Rdiag, Lambda, x
