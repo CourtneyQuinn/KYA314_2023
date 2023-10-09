@@ -173,3 +173,38 @@ def Van_Duff(t,x,p):
     xout[2,:] = omega*x[2,:]**0
     
     return xout
+
+def SM88(t,x,par):
+    '''3D (or 2D) ODE system for ice ages
+    Input
+    ----------
+    t : float
+        time value
+    x : array (3, N) or (2, N)
+        state space values
+    p : array (4,) or (3,)
+        parameter values
+    Returns
+    -------
+    xout : array, shape (3, N) or (2, N)
+           Array containing derivative at x
+           2nd dimension denotes derivatives for different points
+    '''
+
+    if x.ndim == 1:
+        x = np.expand_dims(x, axis=1)
+    
+    n = x.shape
+    xout = np.empty(n)
+    xout[:] = np.nan 
+    
+    p = par[0,]
+    r = par[1,]
+    s = par[2,]
+    #q = par[3,]
+    
+    xout[0,:] = -x[0,:]-x[1,:];
+    xout[1,:] = p*x[0,:]+r*x[1,:]+s*x[0,:]**2-x[0,:]**2*x[1,:]
+    #xout[2,:] = -q*(x[0,:]+x[2,:])
+    
+    return xout
